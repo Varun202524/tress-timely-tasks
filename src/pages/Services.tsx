@@ -1,221 +1,301 @@
 
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { Button } from '@/components/ui/button';
 import { PageTransition } from '@/components/ui/PageTransition';
-import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Clock, Scissors } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Scissors, Clock, DollarSign } from 'lucide-react';
+
+interface ServiceCategoryProps {
+  title: string;
+  description: string;
+  services: ServiceProps[];
+}
+
+interface ServiceProps {
+  name: string;
+  description: string;
+  price: string;
+  duration: string;
+  popular?: boolean;
+}
+
+const serviceCategories: ServiceCategoryProps[] = [
+  {
+    title: "Haircuts & Styling",
+    description: "Precision cuts and expert styling tailored to your face shape and personal style.",
+    services: [
+      {
+        name: "Women's Haircut",
+        description: "Includes consultation, shampoo, conditioning, precision cut, and style.",
+        price: "$65+",
+        duration: "60 min",
+        popular: true
+      },
+      {
+        name: "Men's Haircut",
+        description: "Includes consultation, shampoo, precision cut, and style.",
+        price: "$45+",
+        duration: "45 min"
+      },
+      {
+        name: "Children's Haircut (12 and under)",
+        description: "Gentle approach for our younger clients.",
+        price: "$35+",
+        duration: "30 min"
+      },
+      {
+        name: "Blowout & Style",
+        description: "Professional blowdry and styling to achieve your desired look.",
+        price: "$50+",
+        duration: "45 min"
+      },
+      {
+        name: "Special Occasion Styling",
+        description: "Elegant styling for weddings, proms, and special events.",
+        price: "$85+",
+        duration: "60 min",
+        popular: true
+      }
+    ]
+  },
+  {
+    title: "Color Services",
+    description: "Vibrant, long-lasting color with premium products for healthy, beautiful hair.",
+    services: [
+      {
+        name: "Single Process Color",
+        description: "Full head color application for gray coverage or color change.",
+        price: "$75+",
+        duration: "90 min"
+      },
+      {
+        name: "Partial Highlights",
+        description: "Dimension and depth focused around the face and crown.",
+        price: "$95+",
+        duration: "2 hours"
+      },
+      {
+        name: "Full Highlights",
+        description: "Comprehensive highlights throughout the entire head.",
+        price: "$130+",
+        duration: "2.5 hours",
+        popular: true
+      },
+      {
+        name: "Balayage/Ombré",
+        description: "Hand-painted highlights for a natural, sun-kissed look.",
+        price: "$150+",
+        duration: "3 hours",
+        popular: true
+      },
+      {
+        name: "Color Correction",
+        description: "Specialized service to fix previous color issues (consultation required).",
+        price: "$200+",
+        duration: "3+ hours"
+      }
+    ]
+  },
+  {
+    title: "Treatments & Extensions",
+    description: "Rejuvenating treatments and length-enhancing services for all hair types.",
+    services: [
+      {
+        name: "Deep Conditioning Treatment",
+        description: "Intense moisture and repair for damaged or dry hair.",
+        price: "$35+",
+        duration: "30 min"
+      },
+      {
+        name: "Keratin Smoothing Treatment",
+        description: "Reduces frizz and adds shine for smoother, more manageable hair.",
+        price: "$250+",
+        duration: "3 hours",
+        popular: true
+      },
+      {
+        name: "Hair Extensions (Consultation)",
+        description: "Initial consultation to determine extension type and needs.",
+        price: "Free",
+        duration: "30 min"
+      },
+      {
+        name: "Extension Application",
+        description: "Professional application of premium quality extensions.",
+        price: "$500+",
+        duration: "3+ hours"
+      },
+      {
+        name: "Scalp Treatment",
+        description: "Therapeutic treatment for scalp health and hair growth.",
+        price: "$45+",
+        duration: "45 min"
+      }
+    ]
+  }
+];
+
+const ServiceCategory = ({ category, index }: { category: ServiceCategoryProps, index: number }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.1 }}
+      className="mb-16"
+    >
+      <h2 className="heading-md mb-3">{category.title}</h2>
+      <p className="text-muted-foreground mb-8 max-w-3xl">{category.description}</p>
+      
+      <div className="space-y-4">
+        {category.services.map((service, i) => (
+          <div 
+            key={i} 
+            className={`p-6 rounded-xl border transition-all ${
+              service.popular 
+                ? 'border-primary/50 bg-primary/5 hover:shadow-md' 
+                : 'border-border bg-white hover:shadow-sm'
+            }`}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center">
+                  <h3 className="text-lg font-medium">{service.name}</h3>
+                  {service.popular && (
+                    <span className="ml-3 px-2 py-0.5 text-xs bg-primary/20 text-primary rounded-full">
+                      Popular
+                    </span>
+                  )}
+                </div>
+                <p className="text-muted-foreground mt-1">{service.description}</p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 sm:items-center mt-2 sm:mt-0">
+                <div className="flex items-center text-sm">
+                  <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
+                  <span>{service.duration}</span>
+                </div>
+                <div className="flex items-center text-sm font-medium">
+                  <DollarSign className="h-4 w-4 mr-1 text-primary" />
+                  <span>{service.price}</span>
+                </div>
+                <Link to="/appointments">
+                  <Button variant="outline" size="sm" className="rounded-full">
+                    Book Now
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
 
 const Services = () => {
-  const services = [
-    {
-      category: "Hair Cutting & Styling",
-      items: [
-        {
-          name: "Women's Haircut & Style",
-          description: "Precision cut and professional styling customized to your face shape and preferences.",
-          price: 85,
-          duration: 60,
-        },
-        {
-          name: "Men's Haircut & Style",
-          description: "Tailored cut and styling designed to enhance your look and suit your lifestyle.",
-          price: 65,
-          duration: 45,
-        },
-        {
-          name: "Children's Haircut",
-          description: "Gentle and patient approach to cutting and styling for our younger clients.",
-          price: 45,
-          duration: 30,
-        },
-        {
-          name: "Blow Dry & Styling",
-          description: "Professional blowout and styling to achieve your desired look for any occasion.",
-          price: 65,
-          duration: 45,
-        },
-        {
-          name: "Special Occasion Styling",
-          description: "Elaborate styling for weddings, galas, or any special event requiring a sophisticated look.",
-          price: 95,
-          duration: 60,
-        },
-      ]
-    },
-    {
-      category: "Color Services",
-      items: [
-        {
-          name: "Single Process Color",
-          description: "Full head application of a single hair color for complete coverage or subtle change.",
-          price: 85,
-          duration: 90,
-        },
-        {
-          name: "Highlights/Lowlights",
-          description: "Dimensional color technique that adds depth and contrast to your hair.",
-          price: 120,
-          duration: 120,
-        },
-        {
-          name: "Balayage/Ombré",
-          description: "Hand-painted highlighting technique creating a graduated, natural-looking effect.",
-          price: 150,
-          duration: 150,
-        },
-        {
-          name: "Color Correction",
-          description: "Specialized service to fix or adjust previous color treatments.",
-          price: "Consultation required",
-          duration: "Varies",
-        },
-        {
-          name: "Gloss/Toner",
-          description: "Adds shine and refines color for a polished, vibrant finish.",
-          price: 55,
-          duration: 45,
-        },
-      ]
-    },
-    {
-      category: "Treatments & Textures",
-      items: [
-        {
-          name: "Deep Conditioning Treatment",
-          description: "Intensive hair mask that nourishes and repairs damaged or dry hair.",
-          price: 45,
-          duration: 30,
-        },
-        {
-          name: "Keratin Smoothing Treatment",
-          description: "Reduces frizz and adds shine while making hair more manageable.",
-          price: 250,
-          duration: 150,
-        },
-        {
-          name: "Permanent Wave",
-          description: "Creates lasting curl or wave patterns in your hair.",
-          price: 110,
-          duration: 120,
-        },
-        {
-          name: "Scalp Treatment",
-          description: "Therapeutic treatment addressing specific scalp concerns and promoting hair health.",
-          price: 65,
-          duration: 45,
-        },
-      ]
-    },
-  ];
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
-  };
-
   return (
     <PageTransition>
       <div className="min-h-screen flex flex-col">
         <Header />
         
-        <main className="flex-1 pt-24">
-          {/* Hero */}
-          <section className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-salon-50 via-white to-salon-50 -z-10" />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-              <div className="text-center max-w-3xl mx-auto">
-                <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium tracking-wider mb-4">
-                  OUR SERVICES
-                </span>
-                <h1 className="heading-xl mb-6">Premium Hair Services</h1>
-                <p className="text-lg text-muted-foreground mb-8">
-                  Discover our comprehensive range of hair services designed to transform, enhance, and maintain your unique style.
-                </p>
-                <Link to="/appointments">
-                  <Button size="lg" className="rounded-full px-8">
-                    Book an Appointment
-                  </Button>
-                </Link>
-              </div>
+        {/* Hero Section */}
+        <section className="pt-32 pb-20 bg-secondary/50 relative">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium tracking-wider mb-4">
+                OUR SPECIALTIES
+              </span>
+              <h1 className="heading-xl mb-4">Premium Hair Services</h1>
+              <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+                From precision cuts to transformative color treatments, we offer a complete range of services to enhance your natural beauty.
+              </p>
+            </motion.div>
+          </div>
+        </section>
+        
+        {/* Services List */}
+        <section className="py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {serviceCategories.map((category, index) => (
+              <ServiceCategory key={index} category={category} index={index} />
+            ))}
+          </div>
+        </section>
+        
+        {/* Additional Services */}
+        <section className="py-20 bg-secondary/50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="heading-lg mb-4">Additional Information</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Everything you need to know to prepare for your salon visit.
+              </p>
             </div>
-          </section>
-          
-          {/* Services List */}
-          <section className="py-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              {services.map((category, categoryIndex) => (
-                <div key={categoryIndex} className="mb-20">
-                  <div className="flex items-center mb-8">
-                    <div className="mr-4 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Scissors className="h-6 w-6 text-primary" />
-                    </div>
-                    <h2 className="heading-md">{category.category}</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                {
+                  title: "Cancellation Policy",
+                  description: "We kindly request 24-hour notice for cancellations. Late cancellations may be subject to a fee.",
+                  icon: <Clock className="h-6 w-6 text-primary" />
+                },
+                {
+                  title: "First-Time Clients",
+                  description: "New clients should arrive 15 minutes early to complete consultation forms for the best experience.",
+                  icon: <Scissors className="h-6 w-6 text-primary" />
+                },
+                {
+                  title: "Gift Cards",
+                  description: "The perfect gift for any occasion. Purchase in-salon or online for any service or amount.",
+                  icon: <DollarSign className="h-6 w-6 text-primary" />
+                }
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white p-8 rounded-xl border border-border hover:shadow-soft transition-all"
+                >
+                  <div className="mb-4 inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
+                    {item.icon}
                   </div>
-                  
-                  <motion.div 
-                    variants={container}
-                    initial="hidden"
-                    whileInView="show"
-                    viewport={{ once: true }}
-                    className="grid grid-cols-1 lg:grid-cols-2 gap-8"
-                  >
-                    {category.items.map((service, serviceIndex) => (
-                      <motion.div 
-                        key={serviceIndex}
-                        variants={item}
-                        className="bg-white/80 backdrop-blur-sm border border-salon-100/50 rounded-xl p-6 hover:shadow-soft transition-all"
-                      >
-                        <div className="flex justify-between mb-2">
-                          <h3 className="text-lg font-medium">{service.name}</h3>
-                          <span className="text-primary font-medium">
-                            {typeof service.price === 'number' ? `$${service.price}` : service.price}
-                          </span>
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground mb-3">
-                          <Clock className="h-3.5 w-3.5 mr-1" />
-                          <span>{typeof service.duration === 'number' ? `${service.duration} min` : service.duration}</span>
-                        </div>
-                        <p className="text-muted-foreground text-sm mb-4">{service.description}</p>
-                        <Link to="/appointments">
-                          <Button variant="outline" size="sm" className="rounded-full text-sm">
-                            Book Now
-                          </Button>
-                        </Link>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </div>
+                  <h3 className="text-xl font-medium mb-3">{item.title}</h3>
+                  <p className="text-muted-foreground">{item.description}</p>
+                </motion.div>
               ))}
             </div>
-          </section>
-          
-          {/* CTA */}
-          <section className="py-16 bg-salon-900 text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              <h2 className="heading-lg mb-6">Ready to Experience Our Services?</h2>
-              <p className="text-salon-300 max-w-2xl mx-auto mb-8">
-                Book your appointment today and let our expert stylists help you look and feel your best.
+          </div>
+        </section>
+        
+        {/* CTA */}
+        <section className="py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="heading-lg mb-6">Ready to Transform Your Look?</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
+                Book your appointment today and experience the Elegance difference.
               </p>
               <Link to="/appointments">
                 <Button size="lg" className="rounded-full px-8 bg-primary hover:bg-primary/90">
-                  Schedule Now
+                  Book Your Appointment
                 </Button>
               </Link>
-            </div>
-          </section>
-        </main>
+            </motion.div>
+          </div>
+        </section>
         
         <Footer />
       </div>
