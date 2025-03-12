@@ -127,20 +127,87 @@
   .page-transition-container {
     @apply min-h-screen w-full animate-fade-in;
   }
+
+  /* Enhanced button styles */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 py-2.5 shadow-sm transition-all;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-full px-6 py-2.5 shadow-sm transition-all;
+  }
+  
+  .btn-outline {
+    @apply border border-border bg-transparent hover:bg-secondary rounded-full px-6 py-2.5 transition-all;
+  }
+  
+  /* Card styles */
+  .salon-card {
+    @apply bg-white rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-all;
+  }
+  
+  /* Section styles */
+  .salon-section {
+    @apply py-16 md:py-20;
+  }
+  
+  .salon-section-alt {
+    @apply py-16 md:py-20 bg-secondary/50;
+  }
+  
+  /* Form component styles */
+  .form-input-wrapper {
+    @apply mb-6;
+  }
+  
+  .form-label {
+    @apply block text-sm font-medium text-foreground mb-2;
+  }
+  
+  .form-input {
+    @apply w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30;
+  }
 }
 
-/* Special fade transition for page changes */
+/* Enhanced fade transitions for page changes */
 .page-fade-enter {
   opacity: 0;
+  transform: translateY(10px);
 }
 .page-fade-enter-active {
   opacity: 1;
-  transition: opacity 500ms ease-in-out;
+  transform: translateY(0);
+  transition: opacity 500ms ease-out, transform 500ms ease-out;
 }
 .page-fade-exit {
   opacity: 1;
+  transform: translateY(0);
 }
 .page-fade-exit-active {
   opacity: 0;
-  transition: opacity 300ms ease-in-out;
+  transform: translateY(-10px);
+  transition: opacity 300ms ease-in, transform 300ms ease-in;
 }
+
+/* Animations */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-slide-up {
+  animation: fadeSlideUp 0.5s ease-out forwards;
+}
+
+/* Staggered animations helper classes */
+.stagger-item:nth-child(1) { animation-delay: 0.1s; }
+.stagger-item:nth-child(2) { animation-delay: 0.2s; }
+.stagger-item:nth-child(3) { animation-delay: 0.3s; }
+.stagger-item:nth-child(4) { animation-delay: 0.4s; }
+.stagger-item:nth-child(5) { animation-delay: 0.5s; }

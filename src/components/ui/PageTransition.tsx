@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface PageTransitionProps {
@@ -13,17 +13,19 @@ export const PageTransition = ({
   className
 }: PageTransitionProps) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ 
-        duration: 0.4,
-        ease: [0.22, 1, 0.36, 1]
-      }}
-      className={cn("w-full", className)}
-    >
-      {children}
-    </motion.div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ 
+          duration: 0.5,
+          ease: [0.22, 1, 0.36, 1]
+        }}
+        className={cn("w-full", className)}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
   );
 };
