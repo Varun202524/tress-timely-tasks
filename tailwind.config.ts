@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -24,6 +25,19 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				salon: {
+					50: '#f9f7f5',
+					100: '#f1eeea',
+					200: '#e2ddd5',
+					300: '#d0c8bc',
+					400: '#b5a99a',
+					500: '#a08f7d',
+					600: '#8c7a68',
+					700: '#746556',
+					800: '#61554a',
+					900: '#524840',
+					950: '#2b2520',
+				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'
@@ -70,26 +84,48 @@ export default {
 			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' },
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
-				}
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' },
+				},
+				fadeIn: {
+					from: { opacity: '0' },
+					to: { opacity: '1' },
+				},
+				fadeOut: {
+					from: { opacity: '1' },
+					to: { opacity: '0' },
+				},
+				slideUp: {
+					from: { transform: 'translateY(10px)', opacity: '0' },
+					to: { transform: 'translateY(0)', opacity: '1' },
+				},
+				scaleIn: {
+					from: { transform: 'scale(0.98)', opacity: '0' },
+					to: { transform: 'scale(1)', opacity: '1' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
-			}
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fadeIn 0.3s ease-in-out',
+				'fade-out': 'fadeOut 0.3s ease-in-out',
+				'slide-up': 'slideUp 0.4s ease-out',
+				'scale-in': 'scaleIn 0.3s ease-out',
+			},
+			fontFamily: {
+				sans: ['SF Pro Display', 'system-ui', 'sans-serif'],
+			},
+			boxShadow: {
+				'soft': '0 0 20px rgba(0, 0, 0, 0.05)',
+				'glass': '0 8px 32px rgba(0, 0, 0, 0.06)',
+			},
+			backdropBlur: {
+				'xs': '2px',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
