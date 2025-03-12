@@ -11,6 +11,15 @@ import Stylists from "./pages/Stylists";
 import Appointments from "./pages/Appointments";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import EmployeeDashboard from "./pages/dashboard/EmployeeDashboard";
+import StylistDashboard from "./pages/dashboard/StylistDashboard";
+import DashboardLayout from "./components/dashboard/DashboardLayout";
+import DashboardOverview from "./components/dashboard/DashboardOverview";
+import ManageUsers from "./components/dashboard/employee/ManageUsers";
+import ManageStylists from "./components/dashboard/employee/ManageStylists";
+import ManageAppointments from "./components/dashboard/shared/ManageAppointments";
+import StylistSchedule from "./components/dashboard/stylist/StylistSchedule";
+import StylistProfile from "./components/dashboard/stylist/StylistProfile";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +36,23 @@ const App = () => (
             <Route path="/stylists" element={<Stylists />} />
             <Route path="/appointments" element={<Appointments />} />
             <Route path="/contact" element={<Contact />} />
+            
+            {/* Employee Dashboard */}
+            <Route path="/dashboard/employee" element={<DashboardLayout role="employee" />}>
+              <Route index element={<DashboardOverview role="employee" />} />
+              <Route path="users" element={<ManageUsers />} />
+              <Route path="stylists" element={<ManageStylists />} />
+              <Route path="appointments" element={<ManageAppointments role="employee" />} />
+            </Route>
+            
+            {/* Stylist Dashboard */}
+            <Route path="/dashboard/stylist" element={<DashboardLayout role="stylist" />}>
+              <Route index element={<DashboardOverview role="stylist" />} />
+              <Route path="appointments" element={<ManageAppointments role="stylist" />} />
+              <Route path="schedule" element={<StylistSchedule />} />
+              <Route path="profile" element={<StylistProfile />} />
+            </Route>
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
