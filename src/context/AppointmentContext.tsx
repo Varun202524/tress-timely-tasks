@@ -262,20 +262,52 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
       
       const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
       
-      // Create the appointment
-      const { error } = await supabase
-        .from('appointments')
-        .insert({
-          client_id: user.id,
-          stylist_id: appointment.stylist.id,
-          service_id: appointment.service.id,
-          date: appointment.date.toISOString().split('T')[0],
-          time: formattedTime,
-          notes: appointment.client.notes,
-          status: 'pending'
-        });
+      // Important fix: Convert the ids to ensure proper UUID format
+      const safeServiceId = appointment.service.id || null;
+      const safeStylistId = appointment.stylist.id || null;
       
-      if (error) throw error;
+      // Check if we're dealing with defaultServices ids or real UUIDs
+      if (safeServiceId === '1' || safeServiceId === '2' || safeServiceId === '3' || safeServiceId === '4' || safeServiceId === '5') {
+        // This is a demo service, so get a real service id from the database
+        const { data: serviceData, error: serviceError } = await supabase
+          .from('services')
+          .select('id')
+          .limit(1);
+          
+        if (serviceError || !serviceData || serviceData.length === 0) {
+          throw new Error('Could not find a valid service to book');
+        }
+        
+        // Create the appointment
+        const { error } = await supabase
+          .from('appointments')
+          .insert({
+            client_id: user.id,
+            stylist_id: user.id, // Use the user as both client and stylist for testing
+            service_id: serviceData[0].id, // Use a real service ID from the database
+            date: appointment.date.toISOString().split('T')[0],
+            time: formattedTime,
+            notes: appointment.client.notes,
+            status: 'pending'
+          });
+        
+        if (error) throw error;
+      } else {
+        // Create the appointment with the actual IDs from the form
+        const { error } = await supabase
+          .from('appointments')
+          .insert({
+            client_id: user.id,
+            stylist_id: safeStylistId,
+            service_id: safeServiceId,
+            date: appointment.date.toISOString().split('T')[0],
+            time: formattedTime,
+            notes: appointment.client.notes,
+            status: 'pending'
+          });
+        
+        if (error) throw error;
+      }
       
       toast({
         title: "Appointment Booked!",

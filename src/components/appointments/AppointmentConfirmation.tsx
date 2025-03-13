@@ -14,8 +14,11 @@ export const AppointmentConfirmation = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
   
   const handleConfirm = async () => {
+    setError(null);
+    
     if (!user) {
       toast({
         title: "Authentication required",
@@ -35,11 +38,12 @@ export const AppointmentConfirmation = () => {
         });
         navigate('/');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error confirming appointment:", error);
+      setError(error.message || "There was an error booking your appointment.");
       toast({
         title: "Booking failed",
-        description: "There was an error booking your appointment. Please try again.",
+        description: error.message || "There was an error booking your appointment. Please try again.",
         variant: "destructive"
       });
     }
@@ -130,6 +134,12 @@ export const AppointmentConfirmation = () => {
             </div>
           )}
         </div>
+        
+        {error && (
+          <div className="mt-4 p-3 bg-destructive/10 text-destructive rounded-md">
+            <p className="text-sm font-medium">Error: {error}</p>
+          </div>
+        )}
         
         <div className="flex flex-col sm:flex-row justify-between gap-4 mt-8">
           <Button
