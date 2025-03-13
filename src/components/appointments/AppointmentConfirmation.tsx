@@ -1,34 +1,28 @@
 
 import { useState } from 'react';
 import { useAppointment } from '@/context/AppointmentContext';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
-import { CheckCircle, Calendar, Clock, User, Scissors, MessageSquare, ArrowLeft } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { CheckCircle, Calendar, Clock, User, Scissors, MessageSquare, ArrowLeft, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const AppointmentConfirmation = () => {
-  const { appointment, resetAppointment, prevStep } = useAppointment();
-  const [isConfirming, setIsConfirming] = useState(false);
-  const { toast } = useToast();
+  const { appointment, prevStep, submitAppointment, isSubmitting } = useAppointment();
+  const { user } = useAuth();
   const navigate = useNavigate();
   
-  const handleConfirm = () => {
-    setIsConfirming(true);
+  const handleConfirm = async () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
     
-    // Simulate sending appointment to backend
-    setTimeout(() => {
-      toast({
-        title: "Appointment Confirmed!",
-        description: "Your appointment has been successfully booked.",
-        variant: "default",
-      });
-      
-      setIsConfirming(false);
-      resetAppointment();
+    const success = await submitAppointment();
+    if (success) {
       navigate('/');
-    }, 1500);
+    }
   };
   
   if (!appointment.service || !appointment.stylist || !appointment.date || !appointment.time) {
@@ -124,6 +118,7 @@ export const AppointmentConfirmation = () => {
             variant="outline"
             className="rounded-full px-6"
             size="lg"
+            disabled={isSubmitting}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
@@ -131,12 +126,15 @@ export const AppointmentConfirmation = () => {
           
           <Button
             onClick={handleConfirm}
-            disabled={isConfirming}
+            disabled={isSubmitting}
             className="rounded-full px-8 sm:px-10 py-6 bg-primary hover:bg-primary/90"
             size="lg"
           >
-            {isConfirming ? (
-              "Processing..."
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Processing...
+              </>
             ) : (
               <>
                 <CheckCircle className="mr-2 h-5 w-5" />

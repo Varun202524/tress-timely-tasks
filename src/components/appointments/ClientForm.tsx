@@ -1,6 +1,7 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppointment } from '@/context/AppointmentContext';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,6 +31,7 @@ type ClientFormValues = z.infer<typeof clientSchema>;
 export const ClientForm = () => {
   const { appointment, setClientInfo, nextStep, prevStep } = useAppointment();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user, profile } = useAuth();
   
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientSchema),
@@ -40,6 +42,21 @@ export const ClientForm = () => {
       notes: appointment.client.notes,
     },
   });
+  
+  // Pre-fill form with user data if available
+  useEffect(() => {
+    if (profile && user) {
+      const fullName = `${profile.first_name} ${profile.last_name}`.trim();
+      
+      if (fullName && !appointment.client.name) {
+        form.setValue('name', fullName);
+      }
+      
+      if (user.email && !appointment.client.email) {
+        form.setValue('email', user.email);
+      }
+    }
+  }, [profile, user, form, appointment.client]);
   
   const onSubmit = (data: ClientFormValues) => {
     setIsSubmitting(true);

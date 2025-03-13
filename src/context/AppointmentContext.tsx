@@ -1,5 +1,8 @@
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 // Types
 export type Service = {
@@ -46,6 +49,8 @@ type AppointmentContextType = {
   nextStep: () => void;
   prevStep: () => void;
   goToStep: (step: number) => void;
+  submitAppointment: () => Promise<boolean>;
+  isSubmitting: boolean;
 };
 
 // Default data
@@ -137,7 +142,47 @@ const AppointmentContext = createContext<AppointmentContextType | null>(null);
 // Provider component
 export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
   const [appointment, setAppointment] = useState<AppointmentData>(defaultAppointment);
+  const [services, setServices] = useState<Service[]>(defaultServices);
+  const [stylists, setStylists] = useState<Stylist[]>(defaultStylists);
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
+  
+  // Fetch services from Supabase
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('services')
+          .select('*');
+        
+        if (error) {
+          console.error('Error fetching services:', error);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          const formattedServices = data.map(service => ({
+            id: service.id,
+            name: service.name,
+            description: service.description,
+            price: Number(service.price),
+            duration: service.duration,
+          }));
+          
+          setServices(formattedServices);
+        }
+      } catch (error) {
+        console.error('Error fetching services:', error);
+      }
+    };
+    
+    fetchServices();
+  }, []);
+  
+  // Fetch stylists (in a real app, this would come from the database)
+  // For now, we'll use the default stylists
   
   const setService = (service: Service) => {
     setAppointment(prev => ({ ...prev, service }));
@@ -179,12 +224,85 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
     setCurrentStep(Math.min(Math.max(step, 1), 5));
   };
   
+  const submitAppointment = async (): Promise<boolean> => {
+    if (!appointment.service || !appointment.stylist || !appointment.date || !appointment.time) {
+      toast({
+        title: "Missing information",
+        description: "Please complete all appointment details before confirming.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to book an appointment.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Format the time to a proper PostgreSQL time format (HH:MM:SS)
+      const timeMatch = appointment.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      let hours = 0;
+      let minutes = 0;
+      
+      if (timeMatch) {
+        hours = parseInt(timeMatch[1]);
+        minutes = parseInt(timeMatch[2]);
+        const period = timeMatch[3].toUpperCase();
+        
+        if (period === 'PM' && hours < 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+      }
+      
+      const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+      
+      // Create the appointment
+      const { error } = await supabase
+        .from('appointments')
+        .insert({
+          client_id: user.id,
+          stylist_id: appointment.stylist.id,
+          service_id: appointment.service.id,
+          date: appointment.date.toISOString().split('T')[0],
+          time: formattedTime,
+          notes: appointment.client.notes,
+          status: 'pending'
+        });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Appointment Booked!",
+        description: "Your appointment has been successfully scheduled.",
+      });
+      
+      resetAppointment();
+      return true;
+    } catch (error: any) {
+      console.error('Error submitting appointment:', error);
+      toast({
+        title: "Booking failed",
+        description: error.message || "There was an error booking your appointment. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
   return (
     <AppointmentContext.Provider
       value={{
         appointment,
-        services: defaultServices,
-        stylists: defaultStylists,
+        services,
+        stylists,
         currentStep,
         setService,
         setStylist,
@@ -195,6 +313,8 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
         nextStep,
         prevStep,
         goToStep,
+        submitAppointment,
+        isSubmitting,
       }}
     >
       {children}
