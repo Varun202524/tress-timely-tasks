@@ -11,8 +11,6 @@ import Stylists from "./pages/Stylists";
 import Appointments from "./pages/Appointments";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
-import EmployeeDashboard from "./pages/dashboard/EmployeeDashboard";
-import StylistDashboard from "./pages/dashboard/StylistDashboard";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 import DashboardOverview from "./components/dashboard/DashboardOverview";
 import ManageUsers from "./components/dashboard/employee/ManageUsers";
