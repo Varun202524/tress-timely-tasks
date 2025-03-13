@@ -116,9 +116,9 @@ const ManageAppointments: React.FC<ManageAppointmentsProps> = ({ role }) => {
           service_id,
           client_id,
           stylist_id,
-          services:service_id (id, name, description, price, duration),
-          clients:profiles!appointments_client_id_fkey (id, first_name, last_name, email),
-          stylists:profiles!appointments_stylist_id_fkey (id, first_name, last_name, role)
+          services(id, name, description, price, duration),
+          profiles!appointments_client_id_fkey(id, first_name, last_name, email),
+          stylists:profiles!appointments_stylist_id_fkey(id, first_name, last_name, role)
         `);
       
       // Filter by role
@@ -142,26 +142,39 @@ const ManageAppointments: React.FC<ManageAppointmentsProps> = ({ role }) => {
       if (error) throw error;
       
       if (data) {
-        const formattedAppointments: Appointment[] = data.map(item => ({
-          id: item.id,
-          client: {
-            id: item.clients.id,
-            name: `${item.clients.first_name} ${item.clients.last_name}`.trim(),
-            email: item.clients.email,
-          },
-          stylist: {
-            id: item.stylists.id,
-            name: `${item.stylists.first_name} ${item.stylists.last_name}`.trim(),
-          },
-          service: {
-            id: item.services.id,
-            name: item.services.name,
-          },
-          date: item.date,
-          time: format(new Date(`2000-01-01T${item.time}`), 'h:mm a'),
-          status: item.status,
-          notes: item.notes,
-        }));
+        const formattedAppointments: Appointment[] = data.map(item => {
+          // Make sure services exists and has the expected properties
+          const serviceData = item.services || { id: '', name: 'Unknown Service' };
+          
+          // Ensure status is one of the allowed values
+          let statusValue: 'pending' | 'confirmed' | 'cancelled' | 'completed' = 'pending';
+          if (item.status === 'confirmed' || 
+              item.status === 'cancelled' || 
+              item.status === 'completed') {
+            statusValue = item.status;
+          }
+          
+          return {
+            id: item.id,
+            client: {
+              id: item.profiles?.id || '',
+              name: item.profiles ? `${item.profiles.first_name || ''} ${item.profiles.last_name || ''}`.trim() : 'Unknown',
+              email: item.profiles?.email || '',
+            },
+            stylist: {
+              id: item.stylists?.id || '',
+              name: item.stylists ? `${item.stylists.first_name || ''} ${item.stylists.last_name || ''}`.trim() : 'Unknown',
+            },
+            service: {
+              id: serviceData.id || '',
+              name: serviceData.name || 'Unknown Service',
+            },
+            date: item.date,
+            time: item.time ? format(new Date(`2000-01-01T${item.time}`), 'h:mm a') : '',
+            status: statusValue,
+            notes: item.notes,
+          };
+        });
         
         setAppointments(formattedAppointments);
       }

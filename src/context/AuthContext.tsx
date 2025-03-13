@@ -75,7 +75,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
 
-        setProfile(data);
+        if (data) {
+          // Ensure role is one of the valid types
+          let role: 'client' | 'stylist' | 'employee' = 'client';
+          if (data.role === 'stylist' || data.role === 'employee') {
+            role = data.role;
+          }
+          
+          setProfile({
+            id: data.id,
+            first_name: data.first_name || '',
+            last_name: data.last_name || '',
+            email: data.email || '',
+            role: role,
+            avatar_url: data.avatar_url,
+          });
+        }
       } catch (error) {
         console.error('Error fetching profile:', error);
       }
