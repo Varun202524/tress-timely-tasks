@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -83,6 +82,7 @@ const statusColors: Record<string, { bg: string, text: string, border: string }>
 };
 
 const ManageAppointments: React.FC<ManageAppointmentsProps> = ({ role }) => {
+  
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -143,9 +143,19 @@ const ManageAppointments: React.FC<ManageAppointmentsProps> = ({ role }) => {
       
       if (data) {
         const formattedAppointments: Appointment[] = data.map(item => {
-          // Make sure services exists and has the expected properties
-          const serviceData = item.services || { id: '', name: 'Unknown Service' };
+          // Safely handle services data - check if it exists and has the expected structure
+          // First check if services exists at all
+          const serviceExists = item.services !== null && item.services !== undefined;
           
+          // Then check if it's an array and has elements or is a direct object
+          const serviceData = serviceExists 
+            ? (Array.isArray(item.services) && item.services.length > 0 
+                ? item.services[0] 
+                : typeof item.services === 'object' 
+                  ? item.services 
+                  : null)
+            : null;
+            
           // Ensure status is one of the allowed values
           let statusValue: 'pending' | 'confirmed' | 'cancelled' | 'completed' = 'pending';
           if (item.status === 'confirmed' || 
@@ -166,8 +176,8 @@ const ManageAppointments: React.FC<ManageAppointmentsProps> = ({ role }) => {
               name: item.stylists ? `${item.stylists.first_name || ''} ${item.stylists.last_name || ''}`.trim() : 'Unknown',
             },
             service: {
-              id: serviceData.id || '',
-              name: serviceData.name || 'Unknown Service',
+              id: serviceData?.id || '',
+              name: serviceData?.name || 'Unknown Service',
             },
             date: item.date,
             time: item.time ? format(new Date(`2000-01-01T${item.time}`), 'h:mm a') : '',
@@ -189,6 +199,7 @@ const ManageAppointments: React.FC<ManageAppointmentsProps> = ({ role }) => {
       setLoading(false);
     }
   };
+  
   
   const updateAppointmentStatus = async (id: string, status: string) => {
     setUpdateLoading(true);
@@ -255,6 +266,7 @@ const ManageAppointments: React.FC<ManageAppointmentsProps> = ({ role }) => {
   });
   
   return (
+    
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Manage Appointments</h1>
