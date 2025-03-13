@@ -53,7 +53,7 @@ type AppointmentContextType = {
   isSubmitting: boolean;
 };
 
-// Default data
+// Default data for when services are loading from the database
 const defaultServices: Service[] = [
   {
     id: '1',
@@ -171,7 +171,10 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
             duration: service.duration,
           }));
           
+          console.log('Fetched services from database:', formattedServices);
           setServices(formattedServices);
+        } else {
+          console.log('No services found in the database, using defaults');
         }
       } catch (error) {
         console.error('Error fetching services:', error);
@@ -240,6 +243,7 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
       return false;
     }
     
+    console.log('Submitting appointment with service:', appointment.service);
     setIsSubmitting(true);
     
     try {
@@ -262,13 +266,21 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
       // First, ensure we have a valid service ID from the database
       const { data: serviceData, error: serviceError } = await supabase
         .from('services')
-        .select('id, name')
+        .select('id')
         .eq('name', appointment.service.name)
         .single();
       
-      if (serviceError || !serviceData) {
+      if (serviceError) {
+        console.error('Error finding service by name:', serviceError);
         throw new Error('Could not find the selected service in the database');
       }
+      
+      if (!serviceData) {
+        console.error('No service found with name:', appointment.service.name);
+        throw new Error('Could not find the selected service in the database');
+      }
+      
+      console.log('Found service in database:', serviceData);
       
       // Create the appointment using the valid service ID from the database
       const { error: appointmentError } = await supabase
@@ -283,7 +295,10 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
           status: 'pending'
         });
       
-      if (appointmentError) throw appointmentError;
+      if (appointmentError) {
+        console.error('Error creating appointment:', appointmentError);
+        throw appointmentError;
+      }
       
       toast({
         title: "Appointment Booked!",
