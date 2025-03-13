@@ -13,6 +13,7 @@ import Appointments from "./pages/Appointments";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 import DashboardOverview from "./components/dashboard/DashboardOverview";
 import ManageUsers from "./components/dashboard/employee/ManageUsers";
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/appointments" element={<Appointments />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/profile" element={<Profile />} />
               
               {/* Employee Dashboard */}
               <Route path="/dashboard/employee" element={<DashboardLayout role="employee" />}>

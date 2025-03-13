@@ -64,6 +64,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       try {
+        // Use the get_current_user_role function to safely get role without infinite recursion
+        const { data: roleData, error: roleError } = await supabase.rpc('get_current_user_role');
+        
+        if (roleError) {
+          console.error('Error fetching user role:', roleError);
+        }
+        
+        // Get the profile separately using .eq instead of directly fetching by ID
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -76,20 +84,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         if (data) {
+          // Use the role from the function if available, otherwise fall back to the profile role
+          const userRole = roleData || data.role || 'client';
+          
           // Ensure role is one of the valid types
           let role: 'client' | 'stylist' | 'employee' = 'client';
-          if (data.role === 'stylist' || data.role === 'employee') {
-            role = data.role;
+          if (userRole === 'stylist' || userRole === 'employee') {
+            role = userRole as 'client' | 'stylist' | 'employee';
           }
           
           setProfile({
             id: data.id,
             first_name: data.first_name || '',
             last_name: data.last_name || '',
-            email: data.email || '',
+            email: data.email || user.email || '',
             role: role,
             avatar_url: data.avatar_url,
           });
+        } else {
+          // If no profile is found (which shouldn't happen due to the trigger), create a basic one
+          const newProfile = {
+            id: user.id,
+            first_name: '',
+            last_name: '',
+            email: user.email || '',
+            role: 'client' as const,
+            avatar_url: null,
+          };
+          setProfile(newProfile);
+          
+          // Create the profile in the database
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert([
+              { 
+                id: user.id, 
+                email: user.email,
+                role: 'client'
+              }
+            ]);
+            
+          if (insertError) {
+            console.error('Error creating user profile:', insertError);
+          }
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -126,7 +163,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
       setIsLoading(true);
-      const { error: signUpError } = await supabase.auth.signUp({ 
+      const { error: signUpError, data } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
@@ -148,6 +185,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       
       if (!signInError) {
+        // Create profile in case the trigger fails
+        if (data.user) {
+          await supabase
+            .from('profiles')
+            .insert([
+              { 
+                id: data.user.id, 
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                role: 'client'
+              }
+            ])
+            .single();
+        }
+        
         navigate('/');
       }
     } catch (error: any) {

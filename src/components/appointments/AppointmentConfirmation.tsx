@@ -7,21 +7,41 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { CheckCircle, Calendar, Clock, User, Scissors, MessageSquare, ArrowLeft, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 export const AppointmentConfirmation = () => {
   const { appointment, prevStep, submitAppointment, isSubmitting } = useAppointment();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   const handleConfirm = async () => {
     if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to book an appointment",
+        variant: "destructive"
+      });
       navigate('/auth');
       return;
     }
     
-    const success = await submitAppointment();
-    if (success) {
-      navigate('/');
+    try {
+      const success = await submitAppointment();
+      if (success) {
+        toast({
+          title: "Appointment booked!",
+          description: "Your appointment has been successfully scheduled.",
+        });
+        navigate('/');
+      }
+    } catch (error) {
+      console.error("Error confirming appointment:", error);
+      toast({
+        title: "Booking failed",
+        description: "There was an error booking your appointment. Please try again.",
+        variant: "destructive"
+      });
     }
   };
   
