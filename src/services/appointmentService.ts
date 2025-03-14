@@ -23,32 +23,15 @@ export async function submitAppointment(appointment: AppointmentData, userId: st
   
   const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
   
-  // First, ensure we have a valid service ID from the database
-  const { data: serviceData, error: serviceError } = await supabase
-    .from('services')
-    .select('id')
-    .eq('name', appointment.service.name)
-    .single();
+  console.log('Creating appointment with service ID:', appointment.service.id);
   
-  if (serviceError) {
-    console.error('Error finding service by name:', serviceError);
-    throw new Error('Could not find the selected service in the database');
-  }
-  
-  if (!serviceData) {
-    console.error('No service found with name:', appointment.service.name);
-    throw new Error('Could not find the selected service in the database');
-  }
-  
-  console.log('Found service in database:', serviceData);
-  
-  // Create the appointment using the valid service ID from the database
+  // Create the appointment using the service ID directly from the appointment data
   const { error: appointmentError } = await supabase
     .from('appointments')
     .insert({
       client_id: userId,
-      stylist_id: userId, // Using user ID for testing since we don't have real stylist IDs yet
-      service_id: serviceData.id,
+      stylist_id: appointment.stylist.id, // Use the actual stylist ID
+      service_id: appointment.service.id, // Use the service ID directly
       date: appointment.date.toISOString().split('T')[0],
       time: formattedTime,
       notes: appointment.client.notes,
