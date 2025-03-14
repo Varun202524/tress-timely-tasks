@@ -23,15 +23,17 @@ export async function submitAppointment(appointment: AppointmentData, userId: st
   
   const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
   
-  console.log('Creating appointment with service ID:', appointment.service.id);
+  console.log('Submitting appointment with service:', appointment.service);
+  console.log('Service ID type:', typeof appointment.service.id, 'Value:', appointment.service.id);
+  console.log('Stylist ID type:', typeof appointment.stylist.id, 'Value:', appointment.stylist.id);
   
-  // Create the appointment using the service ID directly from the appointment data
+  // Create the appointment
   const { error: appointmentError } = await supabase
     .from('appointments')
     .insert({
       client_id: userId,
-      stylist_id: appointment.stylist.id, // Use the actual stylist ID
-      service_id: appointment.service.id, // Use the service ID directly
+      stylist_id: appointment.stylist.id,
+      service_id: appointment.service.id,
       date: appointment.date.toISOString().split('T')[0],
       time: formattedTime,
       notes: appointment.client.notes,
