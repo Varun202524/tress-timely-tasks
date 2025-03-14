@@ -1,230 +1,38 @@
 
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { createContext, useContext, ReactNode } from 'react';
+import { AppointmentContextType, AppointmentData, Service, Stylist } from '@/types/appointment';
+import { useAppointmentState } from '@/hooks/useAppointmentState';
+import { submitAppointment } from '@/services/appointmentService';
 import { useAuth } from './AuthContext';
 import { useToast } from '@/hooks/use-toast';
-
-// Types
-export type Service = {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  duration: number; // in minutes
-};
-
-export type Stylist = {
-  id: string;
-  name: string;
-  role: string;
-  image: string;
-  bio: string;
-};
-
-export type AppointmentData = {
-  service: Service | null;
-  stylist: Stylist | null;
-  date: Date | null;
-  time: string | null;
-  client: {
-    name: string;
-    email: string;
-    phone: string;
-    notes: string;
-  };
-};
-
-// Context type
-type AppointmentContextType = {
-  appointment: AppointmentData;
-  services: Service[];
-  stylists: Stylist[];
-  currentStep: number;
-  setService: (service: Service) => void;
-  setStylist: (stylist: Stylist) => void;
-  setDate: (date: Date) => void;
-  setTime: (time: string) => void;
-  setClientInfo: (info: Partial<AppointmentData['client']>) => void;
-  resetAppointment: () => void;
-  nextStep: () => void;
-  prevStep: () => void;
-  goToStep: (step: number) => void;
-  submitAppointment: () => Promise<boolean>;
-  isSubmitting: boolean;
-};
-
-// Default data for when services are loading from the database
-const defaultServices: Service[] = [
-  {
-    id: '1',
-    name: 'Haircut & Style',
-    description: 'Precision cut and professional styling to suit your face shape and preferences.',
-    price: 85,
-    duration: 60,
-  },
-  {
-    id: '2',
-    name: 'Color & Highlights',
-    description: 'Full color or dimensional highlights with expert application techniques.',
-    price: 120,
-    duration: 120,
-  },
-  {
-    id: '3',
-    name: 'Blowout & Styling',
-    description: 'Professional blowdry and styling to achieve your desired look.',
-    price: 65,
-    duration: 45,
-  },
-  {
-    id: '4',
-    name: 'Hair Treatment',
-    description: 'Deep conditioning and specialized treatments to repair and revitalize your hair.',
-    price: 95,
-    duration: 75,
-  },
-  {
-    id: '5',
-    name: 'Bridal Hair',
-    description: 'Complete bridal styling with trial session to perfect your wedding day look.',
-    price: 150,
-    duration: 90,
-  },
-];
-
-const defaultStylists: Stylist[] = [
-  {
-    id: '1',
-    name: 'Alex Morgan',
-    role: 'Master Stylist',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    bio: 'With over 10 years of experience, Alex specializes in precision cuts and color techniques.',
-  },
-  {
-    id: '2',
-    name: 'Jamie Rodriguez',
-    role: 'Color Specialist',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    bio: 'Jamie is our go-to expert for complex color transformations and balayage techniques.',
-  },
-  {
-    id: '3',
-    name: 'Taylor Kim',
-    role: 'Stylist & Texture Expert',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    bio: 'Taylor specializes in curly hair and creating stunning texture-focused styles.',
-  },
-  {
-    id: '4',
-    name: 'Jordan Smith',
-    role: 'Senior Stylist',
-    image: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    bio: 'Jordan brings innovative techniques and a contemporary approach to classic styling.',
-  },
-];
-
-const defaultAppointment: AppointmentData = {
-  service: null,
-  stylist: null,
-  date: null,
-  time: null,
-  client: {
-    name: '',
-    email: '',
-    phone: '',
-    notes: '',
-  },
-};
 
 // Create context
 const AppointmentContext = createContext<AppointmentContextType | null>(null);
 
 // Provider component
 export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
-  const [appointment, setAppointment] = useState<AppointmentData>(defaultAppointment);
-  const [services, setServices] = useState<Service[]>(defaultServices);
-  const [stylists, setStylists] = useState<Stylist[]>(defaultStylists);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    appointment,
+    services,
+    stylists,
+    currentStep,
+    isSubmitting,
+    setIsSubmitting,
+    setService,
+    setStylist,
+    setDate,
+    setTime,
+    setClientInfo,
+    resetAppointment,
+    nextStep,
+    prevStep,
+    goToStep
+  } = useAppointmentState();
+  
   const { toast } = useToast();
   const { user } = useAuth();
   
-  // Fetch services from Supabase
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('services')
-          .select('*');
-        
-        if (error) {
-          console.error('Error fetching services:', error);
-          return;
-        }
-        
-        if (data && data.length > 0) {
-          const formattedServices = data.map(service => ({
-            id: service.id,
-            name: service.name,
-            description: service.description,
-            price: Number(service.price),
-            duration: service.duration,
-          }));
-          
-          console.log('Fetched services from database:', formattedServices);
-          setServices(formattedServices);
-        } else {
-          console.log('No services found in the database, using defaults');
-        }
-      } catch (error) {
-        console.error('Error fetching services:', error);
-      }
-    };
-    
-    fetchServices();
-  }, []);
-  
-  const setService = (service: Service) => {
-    setAppointment(prev => ({ ...prev, service }));
-  };
-  
-  const setStylist = (stylist: Stylist) => {
-    setAppointment(prev => ({ ...prev, stylist }));
-  };
-  
-  const setDate = (date: Date) => {
-    setAppointment(prev => ({ ...prev, date }));
-  };
-  
-  const setTime = (time: string) => {
-    setAppointment(prev => ({ ...prev, time }));
-  };
-  
-  const setClientInfo = (info: Partial<AppointmentData['client']>) => {
-    setAppointment(prev => ({
-      ...prev,
-      client: { ...prev.client, ...info },
-    }));
-  };
-  
-  const resetAppointment = () => {
-    setAppointment(defaultAppointment);
-    setCurrentStep(1);
-  };
-  
-  const nextStep = () => {
-    setCurrentStep(prev => Math.min(prev + 1, 5));
-  };
-  
-  const prevStep = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
-  };
-  
-  const goToStep = (step: number) => {
-    setCurrentStep(Math.min(Math.max(step, 1), 5));
-  };
-  
-  const submitAppointment = async (): Promise<boolean> => {
+  const handleSubmitAppointment = async (): Promise<boolean> => {
     if (!appointment.service || !appointment.stylist || !appointment.date || !appointment.time) {
       toast({
         title: "Missing information",
@@ -247,58 +55,7 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
     setIsSubmitting(true);
     
     try {
-      // Format the time to a proper PostgreSQL time format (HH:MM:SS)
-      const timeMatch = appointment.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
-      let hours = 0;
-      let minutes = 0;
-      
-      if (timeMatch) {
-        hours = parseInt(timeMatch[1]);
-        minutes = parseInt(timeMatch[2]);
-        const period = timeMatch[3].toUpperCase();
-        
-        if (period === 'PM' && hours < 12) hours += 12;
-        if (period === 'AM' && hours === 12) hours = 0;
-      }
-      
-      const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
-      
-      // First, ensure we have a valid service ID from the database
-      const { data: serviceData, error: serviceError } = await supabase
-        .from('services')
-        .select('id')
-        .eq('name', appointment.service.name)
-        .single();
-      
-      if (serviceError) {
-        console.error('Error finding service by name:', serviceError);
-        throw new Error('Could not find the selected service in the database');
-      }
-      
-      if (!serviceData) {
-        console.error('No service found with name:', appointment.service.name);
-        throw new Error('Could not find the selected service in the database');
-      }
-      
-      console.log('Found service in database:', serviceData);
-      
-      // Create the appointment using the valid service ID from the database
-      const { error: appointmentError } = await supabase
-        .from('appointments')
-        .insert({
-          client_id: user.id,
-          stylist_id: user.id, // Using user ID for testing since we don't have real stylist IDs yet
-          service_id: serviceData.id,
-          date: appointment.date.toISOString().split('T')[0],
-          time: formattedTime,
-          notes: appointment.client.notes,
-          status: 'pending'
-        });
-      
-      if (appointmentError) {
-        console.error('Error creating appointment:', appointmentError);
-        throw appointmentError;
-      }
+      await submitAppointment(appointment, user.id);
       
       toast({
         title: "Appointment Booked!",
@@ -336,7 +93,7 @@ export const AppointmentProvider = ({ children }: { children: ReactNode }) => {
         nextStep,
         prevStep,
         goToStep,
-        submitAppointment,
+        submitAppointment: handleSubmitAppointment,
         isSubmitting,
       }}
     >
@@ -355,3 +112,6 @@ export const useAppointment = () => {
   
   return context;
 };
+
+// Re-export types
+export type { Service, Stylist, AppointmentData };
