@@ -40,20 +40,30 @@ export async function submitAppointment(appointment: AppointmentData, userId: st
       throw new Error('Could not find the selected service in the database');
     }
     
-    // Get a valid UUID for the stylist (in a real app, you would store this properly)
-    // For now, we'll generate a UUID for testing
     const serviceId = serviceData.id;
     
-    // Create a dummy stylist ID for testing purposes
-    // In a real app, you would have a proper stylists table and fetch the real ID
-    const { data: stylistData } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('role', 'stylist')
-      .limit(1)
-      .single();
+    // Fetch the stylist profile using the provided stylist.id or name
+    // Be careful with the query to avoid recursion issues with our RLS policies
+    let stylistId = null;
     
-    const stylistId = stylistData?.id || userId; // Fallback to user's ID if no stylist found
+    // First try to get the stylist by ID directly if it's a valid UUID
+    if (appointment.stylist.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(appointment.stylist.id)) {
+      stylistId = appointment.stylist.id;
+    } else {
+      // If not a valid UUID, try to find by name
+      const { data: stylistData, error: stylistError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('role', 'stylist')
+        .limit(1);
+      
+      if (!stylistError && stylistData && stylistData.length > 0) {
+        stylistId = stylistData[0].id;
+      } else {
+        console.warn('Could not find a stylist, using client ID as fallback:', userId);
+        stylistId = userId; // Fallback to user's ID if no stylist found
+      }
+    }
     
     console.log('Using real UUID service_id:', serviceId);
     console.log('Using stylist_id:', stylistId);
