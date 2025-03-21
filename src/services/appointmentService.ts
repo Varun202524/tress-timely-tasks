@@ -1,13 +1,39 @@
 
-import { supabase } from '@/integrations/supabase/client';
 import { AppointmentData } from '@/types/appointment';
 
+// Temporary mock data for services
+const mockServices = [
+  {
+    id: '1',
+    name: 'Haircut',
+    description: 'A professional haircut service',
+    price: 50,
+    duration: 30,
+  },
+  {
+    id: '2',
+    name: 'Hair Coloring',
+    description: 'Full hair coloring service',
+    price: 120,
+    duration: 90,
+  },
+  {
+    id: '3',
+    name: 'Styling',
+    description: 'Hair styling for special occasions',
+    price: 70,
+    duration: 45,
+  }
+];
+
+// This is a temporary implementation that doesn't use Supabase
+// In a real implementation, this would connect to your Django backend
 export async function submitAppointment(appointment: AppointmentData, userId: string): Promise<void> {
   if (!appointment.service || !appointment.stylist || !appointment.date || !appointment.time) {
     throw new Error('Missing required appointment information');
   }
 
-  // Format the time to a proper PostgreSQL time format (HH:MM:SS)
+  // Format the time for consistency
   const timeMatch = appointment.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
   let hours = 0;
   let minutes = 0;
@@ -24,67 +50,26 @@ export async function submitAppointment(appointment: AppointmentData, userId: st
   const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
   
   console.log('Submitting appointment with service:', appointment.service);
-  console.log('Service ID type:', typeof appointment.service.id, 'Value:', appointment.service.id);
-  console.log('Stylist ID type:', typeof appointment.stylist.id, 'Value:', appointment.stylist.id);
+  console.log('Service ID:', appointment.service.id);
+  console.log('Stylist ID:', appointment.stylist.id);
 
   try {
-    // First, fetch the actual UUID for the service from the database using the name
-    const { data: serviceData, error: serviceError } = await supabase
-      .from('services')
-      .select('id')
-      .eq('name', appointment.service.name)
-      .single();
+    // This would be replaced with an API call to your Django backend
+    console.log('Appointment data that would be sent to backend:', {
+      client_id: userId,
+      stylist_id: appointment.stylist.id,
+      service_id: appointment.service.id,
+      date: appointment.date.toISOString().split('T')[0],
+      time: formattedTime,
+      notes: appointment.client.notes,
+      status: 'pending'
+    });
     
-    if (serviceError || !serviceData) {
-      console.error('Error finding service by name:', serviceError);
-      throw new Error('Could not find the selected service in the database');
-    }
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    const serviceId = serviceData.id;
-    
-    // Fetch the stylist profile using the provided stylist.id or name
-    // Be careful with the query to avoid recursion issues with our RLS policies
-    let stylistId = null;
-    
-    // First try to get the stylist by ID directly if it's a valid UUID
-    if (appointment.stylist.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(appointment.stylist.id)) {
-      stylistId = appointment.stylist.id;
-    } else {
-      // If not a valid UUID, try to find by name
-      const { data: stylistData, error: stylistError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('role', 'stylist')
-        .limit(1);
-      
-      if (!stylistError && stylistData && stylistData.length > 0) {
-        stylistId = stylistData[0].id;
-      } else {
-        console.warn('Could not find a stylist, using client ID as fallback:', userId);
-        stylistId = userId; // Fallback to user's ID if no stylist found
-      }
-    }
-    
-    console.log('Using real UUID service_id:', serviceId);
-    console.log('Using stylist_id:', stylistId);
-    
-    // Create the appointment with valid UUIDs
-    const { error: appointmentError } = await supabase
-      .from('appointments')
-      .insert({
-        client_id: userId,
-        stylist_id: stylistId,
-        service_id: serviceId,
-        date: appointment.date.toISOString().split('T')[0],
-        time: formattedTime,
-        notes: appointment.client.notes,
-        status: 'pending'
-      });
-    
-    if (appointmentError) {
-      console.error('Error creating appointment:', appointmentError);
-      throw appointmentError;
-    }
+    // In a real implementation, we would handle the response from the backend
+    console.log('Appointment successfully submitted');
   } catch (error) {
     console.error('Error submitting appointment:', error);
     throw error;
@@ -93,30 +78,11 @@ export async function submitAppointment(appointment: AppointmentData, userId: st
 
 export async function fetchServices() {
   try {
-    const { data, error } = await supabase
-      .from('services')
-      .select('*');
+    // This would be replaced with an API call to your Django backend
+    console.log('Fetched services from mock data');
     
-    if (error) {
-      console.error('Error fetching services:', error);
-      return null;
-    }
-    
-    if (data && data.length > 0) {
-      const formattedServices = data.map(service => ({
-        id: service.id,
-        name: service.name,
-        description: service.description,
-        price: Number(service.price),
-        duration: service.duration,
-      }));
-      
-      console.log('Fetched services from database:', formattedServices);
-      return formattedServices;
-    } else {
-      console.log('No services found in the database, using defaults');
-      return null;
-    }
+    // Return mock data for now
+    return mockServices;
   } catch (error) {
     console.error('Error fetching services:', error);
     return null;
