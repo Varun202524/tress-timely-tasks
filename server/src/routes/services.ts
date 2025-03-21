@@ -1,42 +1,13 @@
 
 import express from 'express';
+import { Service } from '../models/Service';
 
 export const servicesRouter = express.Router();
 
-// Temporary in-memory storage for services
-const services = [
-  {
-    id: '1',
-    name: 'Haircut',
-    description: 'A professional haircut service',
-    price: 50,
-    duration: 30,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: '2',
-    name: 'Hair Coloring',
-    description: 'Full hair coloring service',
-    price: 120,
-    duration: 90,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: '3',
-    name: 'Styling',
-    description: 'Hair styling for special occasions',
-    price: 70,
-    duration: 45,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
-
 // GET - Get all services
-servicesRouter.get('/', (req, res) => {
+servicesRouter.get('/', async (req, res) => {
   try {
+    const services = await Service.find();
     res.status(200).json(services);
   } catch (error: any) {
     console.error('Error fetching services:', error);
@@ -45,9 +16,9 @@ servicesRouter.get('/', (req, res) => {
 });
 
 // GET - Get service by ID
-servicesRouter.get('/:id', (req, res) => {
+servicesRouter.get('/:id', async (req, res) => {
   try {
-    const service = services.find(s => s.id === req.params.id);
+    const service = await Service.findById(req.params.id);
     
     if (!service) {
       return res.status(404).json({ message: 'Service not found' });
@@ -57,5 +28,17 @@ servicesRouter.get('/:id', (req, res) => {
   } catch (error: any) {
     console.error('Error fetching service:', error);
     res.status(500).json({ message: error.message || 'Failed to fetch service' });
+  }
+});
+
+// POST - Create a new service (for admin use)
+servicesRouter.post('/', async (req, res) => {
+  try {
+    const newService = new Service(req.body);
+    const savedService = await newService.save();
+    res.status(201).json(savedService);
+  } catch (error: any) {
+    console.error('Error creating service:', error);
+    res.status(500).json({ message: error.message || 'Failed to create service' });
   }
 });

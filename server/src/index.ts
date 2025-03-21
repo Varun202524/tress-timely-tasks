@@ -4,9 +4,13 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { appointmentsRouter } from './routes/appointments';
 import { servicesRouter } from './routes/services';
+import { connectDB } from './config/db';
 
 // Load environment variables
 dotenv.config();
+
+// Connect to MongoDB
+connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 3000;

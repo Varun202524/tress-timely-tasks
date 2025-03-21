@@ -13,9 +13,12 @@ This is the Express.js backend for the salon appointment application.
 2. Create a `.env` file with the following variables:
    ```
    PORT=3000
+   MONGO_URI=mongodb://localhost:27017/salon-app
    ```
 
-3. Start the development server:
+3. Make sure you have MongoDB installed and running locally, or update the MONGO_URI to point to your MongoDB instance.
+
+4. Start the development server:
    ```
    npm run dev
    ```
@@ -38,3 +41,5 @@ This is the Express.js backend for the salon appointment application.
 
 - `GET /api/services`: Get all services
 - `GET /api/services/:id`: Get service by ID
+- `POST /api/services`: Create a new service (admin use)
+

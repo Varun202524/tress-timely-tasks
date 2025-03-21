@@ -1,13 +1,11 @@
 
 import express from 'express';
+import { Appointment } from '../models/Appointment';
 
 export const appointmentsRouter = express.Router();
 
-// Temporary in-memory storage for appointments
-let appointments: any[] = [];
-
 // POST - Create a new appointment
-appointmentsRouter.post('/', (req, res) => {
+appointmentsRouter.post('/', async (req, res) => {
   try {
     const appointmentData = req.body;
     
@@ -17,20 +15,10 @@ appointmentsRouter.post('/', (req, res) => {
       return res.status(400).json({ message: 'Missing required appointment information' });
     }
     
-    // Generate a unique ID (in a real app, this would be handled by the database)
-    const id = Math.random().toString(36).substring(2, 15);
+    const newAppointment = new Appointment(appointmentData);
+    const savedAppointment = await newAppointment.save();
     
-    const newAppointment = {
-      id,
-      ...appointmentData,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    // Add to our in-memory storage
-    appointments.push(newAppointment);
-    
-    res.status(201).json(newAppointment);
+    res.status(201).json(savedAppointment);
   } catch (error: any) {
     console.error('Error creating appointment:', error);
     res.status(500).json({ message: error.message || 'Failed to create appointment' });
@@ -38,8 +26,9 @@ appointmentsRouter.post('/', (req, res) => {
 });
 
 // GET - Get all appointments
-appointmentsRouter.get('/', (req, res) => {
+appointmentsRouter.get('/', async (req, res) => {
   try {
+    const appointments = await Appointment.find();
     res.status(200).json(appointments);
   } catch (error: any) {
     console.error('Error fetching appointments:', error);
@@ -48,9 +37,9 @@ appointmentsRouter.get('/', (req, res) => {
 });
 
 // GET - Get appointment by ID
-appointmentsRouter.get('/:id', (req, res) => {
+appointmentsRouter.get('/:id', async (req, res) => {
   try {
-    const appointment = appointments.find(a => a.id === req.params.id);
+    const appointment = await Appointment.findById(req.params.id);
     
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
