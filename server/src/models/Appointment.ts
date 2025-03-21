@@ -1,5 +1,5 @@
 
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
 const AppointmentSchema = new mongoose.Schema({
   client_id: {
@@ -11,7 +11,8 @@ const AppointmentSchema = new mongoose.Schema({
     required: true
   },
   service_id: {
-    type: String,
+    type: Schema.Types.ObjectId,
+    ref: 'Service',
     required: true
   },
   date: {

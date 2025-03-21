@@ -13,11 +13,13 @@ const ServiceSchema = new mongoose.Schema({
   },
   price: {
     type: Number,
-    required: true
+    required: true,
+    min: 0
   },
   duration: {
     type: Number,
-    required: true
+    required: true,
+    min: 5
   }
 }, {
   timestamps: {
