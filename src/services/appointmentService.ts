@@ -26,8 +26,10 @@ const mockServices = [
   }
 ];
 
-// This is a temporary implementation that doesn't use Supabase
-// In a real implementation, this would connect to your Django backend
+// API base URL - would be set to your Express backend URL
+const API_URL = 'http://localhost:3000/api';
+
+// This will need to be replaced with actual calls to your Express backend
 export async function submitAppointment(appointment: AppointmentData, userId: string): Promise<void> {
   if (!appointment.service || !appointment.stylist || !appointment.date || !appointment.time) {
     throw new Error('Missing required appointment information');
@@ -49,26 +51,42 @@ export async function submitAppointment(appointment: AppointmentData, userId: st
   
   const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
   
-  console.log('Submitting appointment with service:', appointment.service);
-  console.log('Service ID:', appointment.service.id);
-  console.log('Stylist ID:', appointment.stylist.id);
+  // Prepare the appointment data to send to the backend
+  const appointmentData = {
+    client_id: userId,
+    stylist_id: appointment.stylist.id,
+    service_id: appointment.service.id,
+    date: appointment.date.toISOString().split('T')[0],
+    time: formattedTime,
+    notes: appointment.client.notes,
+    status: 'pending'
+  };
+  
+  console.log('Submitting appointment data:', appointmentData);
 
   try {
-    // This would be replaced with an API call to your Django backend
-    console.log('Appointment data that would be sent to backend:', {
-      client_id: userId,
-      stylist_id: appointment.stylist.id,
-      service_id: appointment.service.id,
-      date: appointment.date.toISOString().split('T')[0],
-      time: formattedTime,
-      notes: appointment.client.notes,
-      status: 'pending'
+    // This is where we would make the API call to the Express backend
+    // For now, we'll just simulate a successful API call
+    
+    // When your Express backend is ready, uncomment this code:
+    /*
+    const response = await fetch(`${API_URL}/appointments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(appointmentData),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to book appointment');
+    }
+    */
     
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // In a real implementation, we would handle the response from the backend
     console.log('Appointment successfully submitted');
   } catch (error) {
     console.error('Error submitting appointment:', error);
@@ -78,7 +96,22 @@ export async function submitAppointment(appointment: AppointmentData, userId: st
 
 export async function fetchServices() {
   try {
-    // This would be replaced with an API call to your Django backend
+    // This is where we would make the API call to the Express backend
+    // For now, we'll just return mock data
+    
+    // When your Express backend is ready, uncomment this code:
+    /*
+    const response = await fetch(`${API_URL}/services`);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch services');
+    }
+    
+    const services = await response.json();
+    return services;
+    */
+    
     console.log('Fetched services from mock data');
     
     // Return mock data for now
